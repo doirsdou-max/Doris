@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>查询 AI 能力测评报告</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0A1628;
+      color: #FFFFFF;
+      font-family: 'PingFang SC', '苹方', 'Microsoft YaHei', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px 16px;
+    }
+    .card {
+      background: #0F2040;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 480px;
+      padding: 40px 32px;
+      text-align: center;
+    }
+    .logo {
+      font-size: 11px;
+      color: #4A6A8A;
+      letter-spacing: 0.05em;
+      margin-bottom: 28px;
+    }
+    h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-bottom: 8px;
+    }
+    .sub {
+      font-size: 13px;
+      color: #8BA3C4;
+      margin-bottom: 36px;
+      line-height: 1.6;
+    }
+    .input-wrap {
+      position: relative;
+      margin-bottom: 16px;
+    }
+    input[type="text"] {
+      width: 100%;
+      background: #162B4A;
+      border: 1px solid #1E3A5F;
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 15px;
+      color: #FFFFFF;
+      outline: none;
+      transition: border-color 0.2s;
+      font-family: inherit;
+    }
+    input[type="text"]:focus { border-color: #4A9EFF; }
+    input[type="text"]::placeholder { color: #4A6A8A; }
+    button {
+      width: 100%;
+      background: #4A9EFF;
+      color: #FFFFFF;
+      border: none;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.2s;
+    }
+    button:hover { opacity: 0.85; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .msg {
+      margin-top: 20px;
+      font-size: 13px;
+      line-height: 1.7;
+      min-height: 24px;
+    }
+    .msg.error { color: #FF6B6B; }
+    .msg.info  { color: #8BA3C4; }
+    .msg.success { color: #00D4AA; }
+    .footer {
+      margin-top: 36px;
+      font-size: 11px;
+      color: #4A6A8A;
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">网易有道领世中台</div>
+  <h1>AI 能力测评报告</h1>
+  <p class="sub">输入填表时使用的姓名<br>查询您的专属测评报告</p>
+
+  <div class="input-wrap">
+    <input type="text" id="nameInput" placeholder="请输入您的姓名" maxlength="20" autocomplete="off">
+  </div>
+  <button id="queryBtn" onclick="query()">查询报告</button>
+  <div class="msg info" id="msg"></div>
+
+  <div class="footer">本测评由网易有道领世中台出品</div>
+</div>
+
+<script>
+// ── 飞书 API 配置 ──
+const APP_TOKEN = 'RGnGbWwcta1faasBMVOcc33Wnmc';
+const TABLE_ID  = 'tblFvZE6KEjkIuBo';
+// 只读 app_token（tenant_access_token）用于公开查询
+// 注意：此页面公开，token 仅有多维表格只读权限
+const APP_ID     = 'cli_aa86aab221d19cc3';
+const APP_SECRET = 'MekRJEDBLG8P5l1iDIPife5r4SEeRdV6';
+
+let tenantToken = '';
+
+async function getTenantToken() {
+  if (tenantToken) return tenantToken;
+  const r = await fetch('https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ app_id: APP_ID, app_secret: APP_SECRET })
+  });
+  const d = await r.json();
+  tenantToken = d.tenant_access_token;
+  return tenantToken;
+}
+
+function setMsg(text, type = 'info') {
+  const el = document.getElementById('msg');
+  el.textContent = text;
+  el.className = 'msg ' + type;
+}
+
+async function query() {
+  const name = document.getElementById('nameInput').value.trim();
+  if (!name) { setMsg('请输入姓名', 'error'); return; }
+
+  const btn = document.getElementById('queryBtn');
+  btn.disabled = true;
+  setMsg('查询中...', 'info');
+
+  try {
+    const token = await getTenantToken();
+    if (!token) throw new Error('获取授权失败');
+
+    // 按姓名搜索记录
+    const url = `https://open.feishu.cn/open-apis/bitable/v1/apps/${APP_TOKEN}/tables/${TABLE_ID}/records/search`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        filter: {
+          conjunction: 'and',
+          conditions: [{ field_name: '姓名', operator: 'is', value: [name] }]
+        },
+        page_size: 1
+      })
+    });
+
+    const data = await res.json();
+    if (data.code !== 0) throw new Error('查询失败，请稍后重试');
+
+    const items = data.data?.items || [];
+    if (items.length === 0) {
+      setMsg(`未找到「${name}」的测评记录，请确认姓名填写一致`, 'error');
+      btn.disabled = false;
+      return;
+    }
+
+    // 取最新一条（第一条）
+    const f = items[0].fields;
+    const get = (k) => {
+      const v = f[k];
+      if (!v) return '';
+      if (Array.isArray(v) && v[0]?.text !== undefined) return v[0].text;
+      return String(v);
+    };
+
+    // 日期处理
+    let dateStr = '';
+    const ts = f['填表时间'];
+    if (ts) {
+      const d = new Date(typeof ts === 'number' ? ts : Date.now());
+      dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+
+    // 构造 report.html 参数
+    const params = new URLSearchParams({
+      name:      get('姓名'),
+      team:      get('团队类型'),
+      base:      get('基地'),
+      level:     get('等级'),
+      title:     get('称号'),
+      total:     get('总分'),
+      max:       '45',
+      breadth:   get('广度得分'),
+      control:   get('可控性得分'),
+      form:      get('形态得分'),
+      influence: get('影响力得分'),
+      weak:      get('短板维度'),
+      date:      dateStr,
+    });
+
+    setMsg('找到记录，正在跳转...', 'success');
+    setTimeout(() => {
+      window.location.href = 'report.html?' + params.toString();
+    }, 600);
+
+  } catch(e) {
+    setMsg(e.message || '网络错误，请重试', 'error');
+    btn.disabled = false;
+  }
+}
+
+// 回车触发查询
+document.getElementById('nameInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') query();
+});
+</script>
+</body>
+</html>
