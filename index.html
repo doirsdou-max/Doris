@@ -94,8 +94,8 @@
 <body>
 <div class="card">
   <div class="logo">网易有道领世中台</div>
-  <h1>AI 能力测评报告</h1>
-  <p class="sub">输入填表时使用的姓名<br>查询您的专属测评报告</p>
+  <h1 id="pageTitle">AI 能力测评报告</h1>
+  <p class="sub" id="pageSub">输入填表时使用的姓名<br>查询您的专属测评报告</p>
 
   <div class="input-wrap">
     <input type="text" id="nameInput" placeholder="请输入您的姓名" maxlength="20" autocomplete="off">
@@ -233,6 +233,14 @@ async function query() {
 document.getElementById('nameInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') query();
 });
+
+// 从表单提交跳转过来时，更新提示文案并自动聚焦
+const fromSubmit = new URLSearchParams(window.location.search).get('from') === 'submit';
+if (fromSubmit) {
+  document.getElementById('pageTitle').textContent = '测评已提交 🎉';
+  document.getElementById('pageSub').innerHTML = '输入刚才填写的姓名<br>立即查看您的 AI 能力报告';
+}
+document.getElementById('nameInput').focus();
 </script>
 </body>
 </html>
