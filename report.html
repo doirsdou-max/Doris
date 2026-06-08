@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 能力测评报告</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0A1628;
+      color: #FFFFFF;
+      font-family: 'PingFang SC', '苹方', 'Microsoft YaHei', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 24px 16px 48px;
+    }
+
+    .card {
+      background: #0F2040;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 480px;
+      overflow: hidden;
+    }
+
+    /* ── 第一区：头部信息 ── */
+    .header {
+      padding: 24px 24px 20px;
+    }
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .name {
+      font-size: 18px;
+      font-weight: 700;
+      color: #FFFFFF;
+      line-height: 1.3;
+    }
+    .team-info {
+      font-size: 12px;
+      color: #8BA3C4;
+      margin-top: 4px;
+    }
+    .date {
+      font-size: 12px;
+      color: #8BA3C4;
+      text-align: right;
+      white-space: nowrap;
+      margin-left: 12px;
+      padding-top: 2px;
+    }
+    .divider {
+      border: none;
+      border-top: 1px solid #1E3A5F;
+      margin-top: 20px;
+    }
+
+    /* ── 第二区：核心结论 ── */
+    .core {
+      padding: 32px 24px 28px;
+      text-align: center;
+      border-bottom: 1px solid #1E3A5F;
+    }
+    .level-label {
+      font-size: 11px;
+      color: #8BA3C4;
+      letter-spacing: 0.1em;
+      margin-bottom: 12px;
+    }
+    .level-number {
+      font-size: 72px;
+      font-weight: 700;
+      color: #4A9EFF;
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+    .level-title {
+      font-size: 20px;
+      color: #D4A843;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    .exceed {
+      font-size: 13px;
+      color: #8BA3C4;
+    }
+    .exceed span {
+      color: #4A9EFF;
+      font-weight: 600;
+    }
+
+    /* ── 第三区：四维度得分 ── */
+    .dimensions {
+      padding: 24px 24px 20px;
+      border-bottom: 1px solid #1E3A5F;
+    }
+    .dim-title {
+      font-size: 12px;
+      color: #8BA3C4;
+      letter-spacing: 0.05em;
+      margin-bottom: 18px;
+    }
+    .dim-item {
+      margin-bottom: 16px;
+    }
+    .dim-item:last-child { margin-bottom: 0; }
+    .dim-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .dim-name {
+      font-size: 13px;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .weak-tag {
+      background: rgba(255, 107, 107, 0.15);
+      color: #FF6B6B;
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 3px;
+      border: 1px solid rgba(255, 107, 107, 0.3);
+    }
+    .dim-score {
+      font-size: 13px;
+      color: #8BA3C4;
+    }
+    .dim-score .score-num {
+      color: #FFFFFF;
+      font-weight: 600;
+    }
+    .bar-bg {
+      height: 6px;
+      background: #1E3A5F;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.8s ease;
+    }
+    .bar-fill.normal { background: #4A9EFF; }
+    .bar-fill.weak   { background: #FF6B6B; }
+
+    /* ── 第四区：下一步建议 ── */
+    .next-step {
+      padding: 20px 24px 24px;
+      border-bottom: 1px solid #1E3A5F;
+    }
+    .advice-card {
+      background: rgba(74, 158, 255, 0.06);
+      border-radius: 10px;
+      padding: 16px 16px 16px 20px;
+      border-left: 3px solid #4A9EFF;
+      position: relative;
+    }
+    .advice-card.lv6 { border-left-color: #B44FFF; }
+    .advice-card.lv5 { border-left-color: #4A9EFF; }
+    .advice-card.lv4 { border-left-color: #00D4AA; }
+    .advice-card.lv3 { border-left-color: #FFB347; }
+    .advice-card.lv2 { border-left-color: #FF6B6B; }
+    .advice-header {
+      font-size: 13px;
+      font-weight: 600;
+      color: #FFFFFF;
+      margin-bottom: 10px;
+    }
+    .advice-line {
+      font-size: 13px;
+      color: #8BA3C4;
+      line-height: 1.8;
+    }
+    .advice-line::before {
+      content: '· ';
+      color: #4A9EFF;
+    }
+
+    /* ── 底部 ── */
+    .footer {
+      padding: 16px 24px 20px;
+      text-align: center;
+      font-size: 11px;
+      color: #4A6A8A;
+    }
+
+    /* ── 错误页 ── */
+    .error-page {
+      color: #8BA3C4;
+      text-align: center;
+      padding: 80px 20px;
+      font-size: 14px;
+      line-height: 1.8;
+      max-width: 480px;
+    }
+  </style>
+</head>
+<body>
+<script>
+const params = new URLSearchParams(window.location.search);
+
+// 参数缺失兜底
+if (!params.get('name')) {
+  document.body.innerHTML = `
+    <div class="error-page">
+      链接已失效或参数缺失<br>
+      请重新填写测评表单
+    </div>
+  `;
+  throw new Error('no params');
+}
+
+// 读取参数
+const name     = params.get('name') || '未知';
+const team     = params.get('team') || '';
+const base     = params.get('base') || '';
+const level    = params.get('level') || 'Lv.2';
+const title    = params.get('title') || '对话者';
+const total    = parseFloat(params.get('total')) || 0;
+const maxScore = parseInt(params.get('max')) || 48;
+const breadth  = parseFloat(params.get('breadth')) || 0;
+const control  = parseFloat(params.get('control')) || 0;
+const formSc   = parseFloat(params.get('form')) || 0;
+const influence= parseFloat(params.get('influence')) || 0;
+const weak     = params.get('weak') || '';
+const dateRaw  = params.get('date') || '';
+
+// 日期格式化
+function formatDate(d) {
+  if (!d) return '';
+  const m = d.match(/(\d{4})-(\d{2})-(\d{2})/);
+  return m ? `${m[1]}年${m[2]}月${m[3]}日` : d;
+}
+
+// 超越百分比
+const percentMap = { 'Lv.6':'97%','Lv.5':'90%','Lv.4':'70%','Lv.3':'40%','Lv.2':'20%' };
+const percent = percentMap[level] || '—';
+
+// 等级颜色
+const levelClass = { 'Lv.6':'lv6','Lv.5':'lv5','Lv.4':'lv4','Lv.3':'lv3','Lv.2':'lv2' };
+
+// 下一步建议
+const nextStepMap = {
+  'Lv.6': { target:'Lv.7', lines:['开始设计自己的 Agent，封装 Skill，投资基础设施。','准备好「第一次比以前慢」，为复利曲线打底。'] },
+  'Lv.5': { target:'Lv.6', lines:['跨过 ChatBot 到 Agent 的门槛，试用 Claude Code 或 Coze。','把 AI 嵌入更多日常工作流，建立 Prompt 模板库和知识库。'] },
+  'Lv.4': { target:'Lv.5', lines:['走出舒适区，用 AI 做你专业以外的事。','工具栈扩张到 5 个以上，为不同场景选择不同工具。'] },
+  'Lv.3': { target:'Lv.4', lines:['练习给 AI 立规矩：加约束、给例子、要格式。','从「随机抽卡」走向「大概率产出可用内容」。'] },
+  'Lv.2': { target:'Lv.3', lines:['从今天开始每天用 AI 做一件工作上的事。','告诉 AI 你是谁、做什么用、给谁看，让它从「猜」变成「答」。'] },
+};
+const step = nextStepMap[level] || nextStepMap['Lv.2'];
+
+// 进度条（满分统一用12）
+const dimMax = 12;
+const dimensions = [
+  { name:'可控性', score:control },
+  { name:'广度',   score:breadth },
+  { name:'形态',   score:formSc  },
+  { name:'影响力', score:influence },
+];
+
+function dimBar(dim) {
+  const isWeak = dim.name === weak;
+  const pct = Math.min(dim.score / dimMax * 100, 100).toFixed(1);
+  return `
+    <div class="dim-item">
+      <div class="dim-row">
+        <span class="dim-name">
+          ${dim.name}
+          ${isWeak ? '<span class="weak-tag">短板</span>' : ''}
+        </span>
+        <span class="dim-score"><span class="score-num">${dim.score}</span> / ${dimMax}</span>
+      </div>
+      <div class="bar-bg">
+        <div class="bar-fill ${isWeak ? 'weak' : 'normal'}" style="width:${pct}%"></div>
+      </div>
+    </div>`;
+}
+
+// 团队/基地信息
+const teamInfo = base ? `${team} · ${base}基地` : team;
+
+// 渲染
+document.body.innerHTML = `
+  <div class="card">
+
+    <!-- 第一区：头部信息 -->
+    <div class="header">
+      <div class="header-row">
+        <div>
+          <div class="name">${name}</div>
+          <div class="team-info">${teamInfo}</div>
+        </div>
+        <div class="date">${formatDate(dateRaw)}</div>
+      </div>
+      <hr class="divider">
+    </div>
+
+    <!-- 第二区：核心结论 -->
+    <div class="core">
+      <div class="level-label">你的 AI 使用等级</div>
+      <div class="level-number">${level}</div>
+      <div class="level-title">${title}</div>
+      <div class="exceed">超越同期 <span>${percent}</span> 的填测者</div>
+    </div>
+
+    <!-- 第三区：四维度得分 -->
+    <div class="dimensions">
+      <div class="dim-title">四维度得分</div>
+      ${dimensions.map(dimBar).join('')}
+    </div>
+
+    <!-- 第四区：下一步建议 -->
+    <div class="next-step">
+      <div class="advice-card ${levelClass[level] || 'lv2'}">
+        <div class="advice-header">下一步建议 · 从 ${level} 迈向 ${step.target}</div>
+        ${step.lines.map(l => `<div class="advice-line">${l}</div>`).join('')}
+      </div>
+    </div>
+
+    <!-- 底部 -->
+    <div class="footer">本测评由网易有道领世中台出品</div>
+
+  </div>
+`;
+</script>
+</body>
+</html>
