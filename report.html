@@ -299,7 +299,7 @@ document.body.innerHTML = `
           <div class="name">${name}</div>
           <div class="team-info">${teamInfo}</div>
         </div>
-        <div class="date">${formatDate(dateRaw)}</div>
+        <div class="date">${formatDate(dateRaw) || formatDate(new Date().toISOString().slice(0,10))}</div>
       </div>
       <hr class="divider">
     </div>
