@@ -173,16 +173,29 @@ async function query() {
 
     // 取最新一条（第一条）
     const f = items[0].fields;
+
+    // search API 返回格式：{ type, value: [...] }
     const get = (k) => {
       const v = f[k];
       if (!v) return '';
+      // search API 格式: { type: 1, value: [{text:'...',type:'text'}] } 或 { type: 2, value: [26.5] }
+      if (v && typeof v === 'object' && 'value' in v) {
+        const val = v.value;
+        if (Array.isArray(val) && val.length > 0) {
+          if (val[0]?.text !== undefined) return val[0].text;  // 文本/公式文本
+          return String(val[0]);                                 // 数字/选项
+        }
+        return '';
+      }
+      // 普通格式兜底
       if (Array.isArray(v) && v[0]?.text !== undefined) return v[0].text;
       return String(v);
     };
 
-    // 日期处理
+    // 日期处理（填表时间为毫秒时间戳）
     let dateStr = '';
-    const ts = f['填表时间'];
+    const tsField = f['填表时间'];
+    const ts = tsField?.value?.[0] ?? tsField;
     if (ts) {
       const d = new Date(typeof ts === 'number' ? ts : Date.now());
       dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
