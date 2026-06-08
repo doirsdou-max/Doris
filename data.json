@@ -1,0 +1,32 @@
+[
+  {
+    "name": "DD",
+    "team": "销转团队",
+    "base": "",
+    "level": "Lv.5",
+    "title": "织网者",
+    "total": "32",
+    "breadth": "9",
+    "control": "9",
+    "form": "10",
+    "influence": "4",
+    "weak": "影响力",
+    "action": "重点培养工作流搭建能力",
+    "date": ""
+  },
+  {
+    "name": "11",
+    "team": "销售团队",
+    "base": "合肥",
+    "level": "Lv.3",
+    "title": "驯化师",
+    "total": "11.5",
+    "breadth": "2.5",
+    "control": "4",
+    "form": "5",
+    "influence": "0",
+    "weak": "影响力",
+    "action": "AI能力明显不足，纳入培训",
+    "date": ""
+  }
+]

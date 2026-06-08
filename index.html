@@ -107,27 +107,8 @@
 </div>
 
 <script>
-// ── 飞书 API 配置 ──
-const APP_TOKEN = 'RGnGbWwcta1faasBMVOcc33Wnmc';
-const TABLE_ID  = 'tblFvZE6KEjkIuBo';
-// 只读 app_token（tenant_access_token）用于公开查询
-// 注意：此页面公开，token 仅有多维表格只读权限
-const APP_ID     = 'cli_aa86aab221d19cc3';
-const APP_SECRET = 'MekRJEDBLG8P5l1iDIPife5r4SEeRdV6';
-
-let tenantToken = '';
-
-async function getTenantToken() {
-  if (tenantToken) return tenantToken;
-  const r = await fetch('https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ app_id: APP_ID, app_secret: APP_SECRET })
-  });
-  const d = await r.json();
-  tenantToken = d.tenant_access_token;
-  return tenantToken;
-}
+// ── 读取本地 data.json（由 GitHub Action 每5分钟同步）──
+// 彻底绕过 CORS 问题
 
 function setMsg(text, type = 'info') {
   const el = document.getElementById('msg');
@@ -144,84 +125,40 @@ async function query() {
   setMsg('查询中...', 'info');
 
   try {
-    const token = await getTenantToken();
-    if (!token) throw new Error('获取授权失败');
+    // 读取静态 data.json（同源，无 CORS 问题）
+    const res = await fetch('data.json?t=' + Date.now());
+    if (!res.ok) throw new Error('数据加载失败，请稍后重试');
+    const records = await res.json();
 
-    // 按姓名搜索记录
-    const url = `https://open.feishu.cn/open-apis/bitable/v1/apps/${APP_TOKEN}/tables/${TABLE_ID}/records/search`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        filter: {
-          conjunction: 'and',
-          conditions: [{ field_name: '姓名', operator: 'is', value: [name] }]
-        },
-        page_size: 1
-      })
-    });
-
-    const data = await res.json();
-    if (data.code !== 0) throw new Error('查询失败，请稍后重试');
-
-    const items = data.data?.items || [];
-    if (items.length === 0) {
-      setMsg(`未找到「${name}」的测评记录，请确认姓名填写一致`, 'error');
+    // 按姓名精确匹配（取最后一条，即最新提交）
+    const matches = records.filter(r => r.name === name);
+    if (matches.length === 0) {
+      setMsg(`未找到「${name}」的测评记录，请确认姓名与填表时一致`, 'error');
       btn.disabled = false;
       return;
     }
+    const rec = matches[matches.length - 1];
 
-    // 取最新一条（第一条）
-    const f = items[0].fields;
-
-    // search API 返回格式：{ type, value: [...] }
-    const get = (k) => {
-      const v = f[k];
-      if (!v) return '';
-      // search API 格式: { type: 1, value: [{text:'...',type:'text'}] } 或 { type: 2, value: [26.5] }
-      if (v && typeof v === 'object' && 'value' in v) {
-        const val = v.value;
-        if (Array.isArray(val) && val.length > 0) {
-          if (val[0]?.text !== undefined) return val[0].text;  // 文本/公式文本
-          return String(val[0]);                                 // 数字/选项
-        }
-        return '';
-      }
-      // 普通格式兜底
-      if (Array.isArray(v) && v[0]?.text !== undefined) return v[0].text;
-      return String(v);
-    };
-
-    // 日期处理（填表时间为毫秒时间戳）
-    let dateStr = '';
-    const tsField = f['填表时间'];
-    const ts = tsField?.value?.[0] ?? tsField;
-    if (ts) {
-      const d = new Date(typeof ts === 'number' ? ts : Date.now());
-      dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    }
-
-    // 构造 report.html 参数
     const params = new URLSearchParams({
-      name:      get('姓名'),
-      team:      get('团队类型'),
-      base:      get('基地'),
-      level:     get('等级'),
-      title:     get('称号'),
-      total:     get('总分'),
+      name:      rec.name,
+      team:      rec.team,
+      base:      rec.base,
+      level:     rec.level,
+      title:     rec.title,
+      total:     rec.total,
       max:       '45',
-      breadth:   get('广度得分'),
-      control:   get('可控性得分'),
-      form:      get('形态得分'),
-      influence: get('影响力得分'),
-      weak:      get('短板维度'),
-      date:      dateStr,
+      breadth:   rec.breadth,
+      control:   rec.control,
+      form:      rec.form,
+      influence: rec.influence,
+      weak:      rec.weak,
+      date:      rec.date,
     });
 
     setMsg('找到记录，正在跳转...', 'success');
     setTimeout(() => {
       window.location.href = 'report.html?' + params.toString();
-    }, 600);
+    }, 500);
 
   } catch(e) {
     setMsg(e.message || '网络错误，请重试', 'error');
