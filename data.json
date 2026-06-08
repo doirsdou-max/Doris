@@ -43,5 +43,20 @@
     "weak": "影响力",
     "action": "AI能力明显不足，纳入培训",
     "date": ""
+  },
+  {
+    "name": "zz",
+    "team": "销转团队",
+    "base": "",
+    "level": "Lv.2",
+    "title": "对话者",
+    "total": "4.5",
+    "breadth": "2.5",
+    "control": "1",
+    "form": "1",
+    "influence": "0",
+    "weak": "影响力",
+    "action": "需要重点关注，限期提升",
+    "date": ""
   }
 ]
