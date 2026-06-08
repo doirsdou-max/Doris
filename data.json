@@ -58,5 +58,20 @@
     "weak": "影响力",
     "action": "需要重点关注，限期提升",
     "date": ""
+  },
+  {
+    "name": "xx",
+    "team": "销转团队",
+    "base": "",
+    "level": "Lv.3",
+    "title": "驯化师",
+    "total": "16",
+    "breadth": "5",
+    "control": "5",
+    "form": "5",
+    "influence": "1",
+    "weak": "影响力",
+    "action": "AI能力明显不足，纳入培训",
+    "date": ""
   }
 ]
