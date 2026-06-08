@@ -28,5 +28,20 @@
     "weak": "影响力",
     "action": "AI能力明显不足，纳入培训",
     "date": ""
+  },
+  {
+    "name": "22",
+    "team": "销售团队",
+    "base": "新乡",
+    "level": "Lv.3",
+    "title": "驯化师",
+    "total": "14",
+    "breadth": "6",
+    "control": "3",
+    "form": "4",
+    "influence": "1",
+    "weak": "影响力",
+    "action": "AI能力明显不足，纳入培训",
+    "date": ""
   }
 ]
