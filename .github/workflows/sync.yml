@@ -16,7 +16,7 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install requests
-      - run: python sync.py
+      - run: sleep 15 && python sync.py  # 等飞书公式字段计算完再拉
       - run: |
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
