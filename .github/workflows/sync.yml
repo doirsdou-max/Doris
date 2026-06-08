@@ -1,5 +1,7 @@
 name: Sync Feishu Data
 on:
+  repository_dispatch:
+    types: [feishu-sync]
   schedule:
     - cron: '*/5 * * * *'
   workflow_dispatch:
