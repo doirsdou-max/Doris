@@ -73,5 +73,20 @@
     "weak": "影响力",
     "action": "AI能力明显不足，纳入培训",
     "date": ""
+  },
+  {
+    "name": "rr",
+    "team": "销转团队",
+    "base": "",
+    "level": "Lv.3",
+    "title": "驯化师",
+    "total": "12",
+    "breadth": "2",
+    "control": "3",
+    "form": "3",
+    "influence": "4",
+    "weak": "广度",
+    "action": "AI能力明显不足，纳入培训",
+    "date": ""
   }
 ]
